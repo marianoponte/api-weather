@@ -30,5 +30,7 @@ Filtros opcionales: date (yyyy-MM-dd), city, sort (data o -data)
 Ejemplos:
 
 http://localhost:8080/weather?date=2021-04-04
+
 http://localhost:8080/weather?city=Moscu
+
 http://localhost:8080/weather?sort=data
