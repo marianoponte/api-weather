@@ -1,18 +1,15 @@
 package com.santander.api.weather.service.impl;
 
-import com.santander.api.weather.dto.WeatherRequestDTO;
-import com.santander.api.weather.dto.WeatherResponseDTO;
 import com.santander.api.weather.model.Weather;
 import com.santander.api.weather.repository.WeatherRepository;
 import com.santander.api.weather.service.WeatherService;
+import com.santander.api.weather.specifications.WeatherSpecification;
+import com.santander.api.weather.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class WeatherServiceImpl implements WeatherService {
@@ -21,66 +18,37 @@ public class WeatherServiceImpl implements WeatherService {
     private WeatherRepository weatherRepository;
 
     @Override
-    public List<WeatherResponseDTO> getWeather(Optional<Date> date, Optional<String> city, Optional<String> sort) {
+    public List<Weather> getWeather(Optional<Date> date, Optional<String> city, Optional<String> sort) {
         List<Weather> weather = new ArrayList<>();
+        Map<String, Object> filters = new HashMap<>();
+
         if (date.isPresent()) {
-            weather = weatherRepository.findByDate(date.get());
-        } else if (city.isPresent()) {
-            weather = weatherRepository.findByCity(city.get());
+            filters.put("date", date.get());
         }
-        else if (sort.isPresent()) {
-            if ("data".equals(sort.get())) {
-                weather = weatherRepository.findAllByOrderByDate();
-            } else if ("-data".equals(sort.get())) {
-                weather = weatherRepository.findAllByOrderByDateDesc();
-            }
+        if (city.isPresent()) {
+            filters.put("city", city.get());
+        }
+        if (sort.isPresent() && Constants.SORT_DATE_ASC.equals(sort.get())) {
+            weather = weatherRepository.findAll(WeatherSpecification.findWeatherByFilters(filters), Sort.by("date").ascending());
+        } else if (sort.isPresent() && Constants.SORT_DATE_DESC.equals(sort.get())){
+            weather = weatherRepository.findAll(WeatherSpecification.findWeatherByFilters(filters), Sort.by("date").descending());
         } else {
-            weather = weatherRepository.findAll();
+            weather = weatherRepository.findAll(WeatherSpecification.findWeatherByFilters(filters));
         }
-        return weather.stream().map(this::createFrom)
-                .collect(Collectors.toList());
+        return weather;
     }
 
     @Override
-    public WeatherResponseDTO getWeatherById(Integer id) {
-        WeatherResponseDTO responseDTO = new WeatherResponseDTO();
+    public Weather getWeatherById(Integer id) {
         Optional<Weather> weather = weatherRepository.findById(id);
         if (weather.isPresent()) {
-            return createFrom(weather.get());
+            return weather.get();
         } else return null;
     }
 
     @Override
-    public WeatherResponseDTO createWeather(WeatherRequestDTO weatherRequest) {
-        Weather weather = weatherRepository.save(createFrom(weatherRequest));
-        WeatherResponseDTO weatherResponseDTO = createFrom(weather);
-        return weatherResponseDTO;
-    }
-
-    public WeatherResponseDTO createFrom(Weather weather) {
-        WeatherResponseDTO dto = new WeatherResponseDTO();
-        if (weather != null) {
-            dto.setId(weather.getId());
-            dto.setDate(weather.getDate());
-            dto.setLat(weather.getLat());
-            dto.setLon(weather.getLon());
-            dto.setCity(weather.getCity());
-            dto.setState(weather.getState());
-            dto.setTemperatures(weather.getTemperatures());
-        }
-        return dto;
-    }
-
-    public Weather createFrom(WeatherRequestDTO weatherRequest) {
-        Weather weather = new Weather();
-        if (weatherRequest != null) {
-            weather.setDate(weatherRequest.getDate());
-            weather.setLat(weatherRequest.getLat());
-            weather.setLon(weatherRequest.getLon());
-            weather.setCity(weatherRequest.getCity());
-            weather.setState(weatherRequest.getState());
-            weather.setTemperatures(weatherRequest.getTemperatures());
-        }
+    public Weather createWeather(Weather weatherRequest) {
+        Weather weather = weatherRepository.save(weatherRequest);
         return weather;
     }
 }

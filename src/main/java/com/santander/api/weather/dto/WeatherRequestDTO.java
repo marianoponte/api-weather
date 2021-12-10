@@ -1,13 +1,14 @@
 package com.santander.api.weather.dto;
 
-import org.springframework.format.annotation.DateTimeFormat;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.santander.api.weather.utils.Constants;
 
 import java.util.Date;
 import java.util.List;
 
 public class WeatherRequestDTO {
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = Constants.DATE_FORMAT_PATTERN)
     private Date date;
 
     private Float lat;

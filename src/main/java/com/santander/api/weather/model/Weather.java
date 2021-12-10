@@ -1,8 +1,10 @@
 package com.santander.api.weather.model;
 
+import com.santander.api.weather.utils.Constants;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +15,7 @@ public class Weather {
     private Integer id;
 
     @Temporal(TemporalType.DATE)
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = Constants.DATE_FORMAT_PATTERN)
     private Date date;
 
     private Float lat;
